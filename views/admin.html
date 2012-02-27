@@ -1,0 +1,39 @@
+
+  <div class="row-fluid">
+    <div class="span2">
+      <!--Sidebar content -- current items-->
+
+	<!-- we passed in data from web.js render.response, so we have access to 'images' -->
+                                
+	
+    </div>
+    <div class="span10">
+      <!--Body content -- content avail form -->
+      <h1>Add an Item Type</h1>
+<!-- textbox #newTodo -->
+<form method="POST" name="ItemTypeForm">
+<input type="text" placeholder="Item Type" id="itemTypeName" name="itemTypeName" size="50" />
+<input type="text" placeholder="Dominance Points" id="domPts" name="domPts" size="50" />
+<input type="text" placeholder="Cost" id="cost" name="cost" size="50" />
+<input type="submit" value="Add Item" id="saveBtn"/>
+</form>
+
+	<h2>Current Item Types</h2>
+                <dl>
+				    <% for(i=itemTypes.length-1; i>=0; i--) { %>
+                                       
+                                       <dt><strong><%= itemTypes[i].itemTypeName %></strong></dt>
+                                        <dd>Dominence Points: <%= itemTypes[i].domPts %><dd>
+					<dd>Cost: <%=itemTypes[i].cost %></dd>
+					<dd>Picture: <%= itemTypes[i].picture %><dd>
+                                
+                                    <% } %>
+				    </dl>
+                                    
+					
+      
+      
+      
+      
+    </div>
+  </div>

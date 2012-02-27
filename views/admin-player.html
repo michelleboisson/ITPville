@@ -1,0 +1,35 @@
+
+  <div class="row-fluid">
+    <div class="span2">
+      <!--Sidebar content -- current items-->
+
+	<!-- we passed in data from web.js render.response, so we have access to 'images' -->
+                                
+	
+    </div>
+    <div class="span10">
+      <!--Body content -- content avail form -->
+      <h1>Add a Player</h1>
+<!-- textbox #newTodo -->
+<form method="POST" name="PlayerForm">
+<input type="text" placeholder="Player Name" id="name" name="name" size="50" />
+<input type="text" placeholder="Password" id="password" name="password" size="50" />
+<input type="submit" value="Add Player" id="saveBtn"/>
+</form>
+      
+      
+      
+      	<h2>Current Players</h2>
+                <dl>
+				    <% for(i=players.length-1; i>=0; i--) { %>
+                                       
+                                       <dt><strong><%= players[i].name %></strong></dt>
+                                
+                                    <% } %>
+				    </dl>
+                                    
+					
+      
+      
+    </div>
+  </div>

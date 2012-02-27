@@ -1,0 +1,36 @@
+
+  <div class="row-fluid">
+    <div class="span2">
+      <!--Sidebar content -- current items-->
+
+	<!-- we passed in data from web.js render.response, so we have access to 'images' -->
+                                
+	
+    </div>
+    <div class="span10">
+      <!--Body content -- content avail form -->
+      <h1>Add a Room</h1>
+<!-- textbox #newTodo -->
+<form method="POST" name="PlayerForm">
+<input type="text" placeholder="Room Name" id="name" name="name" size="50" />
+<input type="text" placeholder="Dominance bonus" id="domBonus" name="domBonus" size="50" />
+<input type="submit" value="Add Room" id="saveBtn"/>
+</form>
+      
+      
+      
+      	<h2>Current Rooms</h2>
+                <dl>
+				    <% for(i=rooms.length-1; i>=0; i--) { %>
+                                       
+                                       <dt><strong><%= rooms[i].name %></strong></dt>
+                                       <dd>Dominance Bonus: <%= rooms[i].domBonus %></dd>
+                                
+                                    <% } %>
+				    </dl>
+                                    
+					
+      
+      
+    </div>
+  </div>
