@@ -16,6 +16,7 @@ var Room = mongoose.model('Room');
 var ItemType = mongoose.model('ItemType');
 var Item = mongoose.model('Item');
 var Player = mongoose.model('Player');
+var GameLog = mongoose.model('GameLog');
 
 /************* END DATABASE CONFIGURATION *********/
 
@@ -57,6 +58,14 @@ app.configure(function() {
 });
 /*********** END SERVER CONFIGURATION *****************/
 
+/* -------------------  -----------------*/
+
+
+
+
+
+
+/* -------------------HOME PAGE -----------------*/
 
 app.get('/', function(request, response) {
     
@@ -64,43 +73,84 @@ app.get('/', function(request, response) {
     var query = ItemType.find({});
     query.sort('domPts',-1); //sort by date in descending order
     
+     var queryRooms = Room.find({});
+        queryRooms.sort('name',-1);
+    
     // run the query and display blog_main.html template if successful
     query.exec({}, function(err, allItemTypes){
+        
+        queryRooms.exec({}, function(err, allRooms){
         
         if (err){
             console.log('No Item Types Available');
             console.log(err);
         }
-        
+               
         // prepare template data
         templateData = {
             itemTypes : allItemTypes,
+            rooms : allRooms,
             pageTitle : 'ITPville'
         };
         
-    //render the card_form page with the data above
-    //response.render("card_form.html",templateData);
-    response.render("home.html", templateData);
-    
+        console.log("allItemTypes contains");
+        console.log(allItemTypes);
+        console.log("*****************");
+
+        response.render("home.html", templateData);
+        });
     });
 });
 
 app.post('/', function(request, response){
-    console.log("Inside app.post('/player')");
-    console.log("form received and includes")
+    console.log("Inside app.post('/')");
+    console.log("form received and includes");
     console.log(request.body);
     
-    var newMove = {
-        itemChoices : request.body.itemChoices,
-    };
+
+    var itemChoices = request.body.itemChoices;
+    var room        = request.body.rooms;
+    console.log ("room[0]: "+room[0]);
+    //loop through all choices
+    console.log ("outside loop itemChoices.length: "+itemChoices.length);
     
-    // create a new blog post
-    var player = new Player(newPlayer);
+    for (a=0; a < itemChoices.length; a++){
+        
+        //find the room the item belongs to
+        //console.log ("itemChoices.length: + a : "+itemChoices.length + " " +a);
+        
+        Room.findOne({name:room[a]}, function(err,thisRoom){
+            //create itemData from inputted data
+            
+            console.log("thisRoom is:" + thisRoom.name);
+            console.log("thisRoom is:" + thisRoom);
+        
+            ItemType.findOne({name:itemChoices[a]}, function(err, thisItemType){
+                
+            
+            var itemData = {
+                itemtype : thisItemType,
+                player : "Player1"
+            }
+            console.log("itemData: " + itemData);
+        
+            //create the new Item
+            var newItem = new Item(itemData);
+        
+            //append the item to the room
+            thisRoom.items.push(newItem);
     
-    // save the blog post
-    player.save();
-    
-    response.redirect('/admin-player.html');
+            //create new log
+            var newLogEntry = new GameLog(itemData.player+ " bought a " + itemData.itemType + " and put it in "+ thisRoom.name);
+            console.log ("newLogEntry: "+newLogEntry);
+            // save
+            thisRoom.save();
+            });
+
+        });
+    }
+   
+    response.redirect('/');
 });
 
 
@@ -143,6 +193,16 @@ app.post('/admin.html', function(request, response){
         domPts: request.body.domPts,
         cost: request.body.cost
     };
+    /* can also say it like this:
+      var newItemType = new ItemType();
+      newItemType.itemTypeName = request.body.itemTypeName;
+      newItemType.picture = request.body.picture;
+      newItemType.domPts = request.body.domPts;
+      newItemType.cost = request.body.cost;
+      
+      
+      // it's *.nameonSchema = request.body.nameonhtmlform
+    */
     
     // create a new blog post
     var itemType = new ItemType(newItemType);

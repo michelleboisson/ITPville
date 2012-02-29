@@ -10,11 +10,11 @@ document.getElementById("sidemenu").className += "home";
 </div>
 			
   <div class="row-fluid">
-    <div class="span2">
+    <div class="span4">
       <!--Sidebar content -- Player info-->
       <h2>Your Status:</h2>
     </div>
-    <div class="span10">
+    <div class="span8">
       <!--Body content -- content avail form -->
       
       
@@ -22,18 +22,39 @@ document.getElementById("sidemenu").className += "home";
       
       <h2>Current Item Types</h2>
       <form method="post">
-	<dl>
-	<% for(i=itemTypes.length-1; i>=0; i--) { %>                               
-                <dt><input type="checkbox" name="itemChoices" value="<%= itemTypes[i].itemTypeName %>"/> <strong><%= itemTypes[i].itemTypeName %></strong></dt>
-                <dd>Dominence Points: <%= itemTypes[i].domPts %><dd>
-		<dd>Picture: <%= itemTypes[i].picture %><dd>
-		<% } %>
-	</dl>
+	
+	<% for(i=0; i<=itemTypes.length-1; i++) { %>                               
+                <div class="item">
+			<input type="checkbox" id="<%= i %>"  name="itemChoices" value="<%= itemTypes[i].itemTypeName %>"/> <strong><%= itemTypes[i].itemTypeName %></strong><br/>
+			Dominence Points: <%= itemTypes[i].domPts %><br/>
+			Picture: <%= itemTypes[i].picture %>
+		</div>
+	<% } %>
+	
          
 	<input type="submit" value="Make Move" id="saveBtn"/>                           
       </form>
       
-      
+  </div>
       
     </div>
   </div>
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+
+		//Get show the dropdown for items that are checked
+		var dropdown = "<select name='rooms' class='roomoptions'><option value=''>Choose room...</option><% for (r=rooms.length-1; r>=0; r--) { %><option name='<%= rooms[r].name %>' value='<%= rooms[r].name %>'><%= rooms[r].name %></option><% } %></select> ";
+		
+		$("input[name=itemChoices]").live('click', function() {	
+			if($(this).attr("checked")){	
+				$(this).parents("div.item").append($(dropdown));
+			}
+			else{
+				$(this).removeAttr("checked");
+				$(this).siblings(".roomoptions").remove();
+			}
+		});
+        });//end jQuery
+        
+</script>
+

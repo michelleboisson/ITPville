@@ -12,10 +12,10 @@ module.exports.configureSchema = function(Schema, mongoose) {
     });
     
     // Rooms - 
-    Room = new Schema({
+    var Room = new Schema({
       name      : String
     , domBonus : Number
-    , items     : [Item] 
+    , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
 //    , dominantPlayer      : {type: Player}
     });
     
@@ -29,12 +29,27 @@ module.exports.configureSchema = function(Schema, mongoose) {
     
     // Items - 
     var Item = new Schema({
-      itemtype      : {type: Schema.ObjectId, ref :'ItemType'}
-    , room      : {type: Schema.ObjectId, ref :'Room'}
-    , player  : {type: Schema.ObjectId, ref :'Player'}
+      itemtype  : {type: Schema.ObjectId, ref :'ItemType'}
+    , player    : String
+    //, player    : {type: Schema.ObjectId, ref :'Player'}// use playername: String
     });
     
-
+    
+    var GameLog = new Schema({
+       log          : String,
+       timestamp    : { type: Date, default: Date.now }
+    });
+    
+/*
+  Maybe.... Rooms have Items.
+  Items are nested inside Rooms, and they have a player and an ItemType attached to them
+  but some Items exist outside of rooms, like Super Brains and Office Hours with the residents
+  
+  several types of Items?
+  ones that go in rooms (like zorb, interactive fish tank),
+  ones that you keep as recurring (like super brain),
+  ones that buy and use (office hours with resident, mountain dew)
+*/
  
 
     // add schemas to Mongoose
@@ -42,5 +57,8 @@ module.exports.configureSchema = function(Schema, mongoose) {
     mongoose.model('ItemType', ItemType);
     mongoose.model('Item', Item);
     mongoose.model('Player', Player);
+    mongoose.model('GameLog', GameLog);
 
+
+//shop.item.
 };
