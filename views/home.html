@@ -6,6 +6,10 @@ document.getElementById("sidemenu").className += "home";
 <div id="gamestatus">
 	 <h2>Game Status</h2>
 	 <img src="/img/Floorplan.png" alt="floorplan" />
+	 <% for(i=0; i<=logs.length-1; i++) { %>
+	 <p><%= logs[i].log %></p>
+	 <% } %>
+	 
 	
 </div>
 			
@@ -20,7 +24,7 @@ document.getElementById("sidemenu").className += "home";
       
       
       
-      <h2>Current Item Types</h2>
+      <h2>Purchase Items</h2>
       <form method="post">
 	
 	<% for(i=0; i<=itemTypes.length-1; i++) { %>                               

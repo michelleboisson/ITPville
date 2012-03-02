@@ -73,32 +73,40 @@ app.get('/', function(request, response) {
     var query = ItemType.find({});
     query.sort('domPts',-1); //sort by date in descending order
     
-     var queryRooms = Room.find({});
+    var queryRooms = Room.find({});
         queryRooms.sort('name',-1);
+        
+    var queryLog = GameLog.find({}).sort('timestamp', -1).limit(10);
+    
     
     // run the query and display blog_main.html template if successful
     query.exec({}, function(err, allItemTypes){
         
         queryRooms.exec({}, function(err, allRooms){
+            
+            queryLog.exec({}, function(err, logs){
         
         if (err){
             console.log('No Item Types Available');
             console.log(err);
         }
+        
                
         // prepare template data
         templateData = {
             itemTypes : allItemTypes,
             rooms : allRooms,
+            logs : logs,
             pageTitle : 'ITPville'
         };
         
-        console.log("allItemTypes contains");
-        console.log(allItemTypes);
-        console.log("*****************");
+//       console.log("allItemTypes contains");
+//      console.log(allItemTypes);
+//        console.log("*****************");
 
         response.render("home.html", templateData);
         });
+            });
     });
 });
 
@@ -108,47 +116,67 @@ app.post('/', function(request, response){
     console.log(request.body);
     
 
-    var itemChoices = request.body.itemChoices;
-    var room        = request.body.rooms;
-    console.log ("room[0]: "+room[0]);
+    var itemChoices = request.body.itemChoices; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
+//    itemChoices = Array(itemChoices);
+    var room    = request.body.rooms; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
+//    room = Array(room);
+    console.log ("room: "+room);
+    
     //loop through all choices
     console.log ("outside loop itemChoices.length: "+itemChoices.length);
     
-    for (a=0; a < itemChoices.length; a++){
+    console.log("itemChoice 0: "+itemChoices[0]);
+    console.log("itemChoice 1: "+itemChoices[1]);
+    
+    for (i=0; i < itemChoices.length; i++){
+        console.log("i:" + i);
         
-        //find the room the item belongs to
-        //console.log ("itemChoices.length: + a : "+itemChoices.length + " " +a);
+        var thisroom = room[i];
+        var thistype = itemChoices[i];      
         
-        Room.findOne({name:room[a]}, function(err,thisRoom){
+        Room.findOne({name:thisroom}, function(err,thisRoom){
             //create itemData from inputted data
             
-            console.log("thisRoom is:" + thisRoom.name);
-            console.log("thisRoom is:" + thisRoom);
+            console.log("------------------thisRoom is:" + thisRoom.name);
+            console.log("i:" + i);
         
-            ItemType.findOne({name:itemChoices[a]}, function(err, thisItemType){
-                
+            ItemType.findOne({itemTypeName:thistype}, function(err, thisItemType){
+                 console.log("i:" + i);
+                if (err){
+                    console.log("that itemType not found");
+                }
             
-            var itemData = {
-                itemtype : thisItemType,
-                player : "Player1"
-            }
-            console.log("itemData: " + itemData);
+                var itemData = {
+                    itemtype : thisItemType,
+                    player : "Player1"
+                }
+                console.log("thisItemType: " + thisItemType);
         
-            //create the new Item
-            var newItem = new Item(itemData);
+                //create the new Item
+                var newItem = new Item(itemData);
         
-            //append the item to the room
-            thisRoom.items.push(newItem);
+                console.log("new item created: ");
+                
+                //append the item to the room
+                thisRoom.items.push(newItem);
+              
     
-            //create new log
-            var newLogEntry = new GameLog(itemData.player+ " bought a " + itemData.itemType + " and put it in "+ thisRoom.name);
-            console.log ("newLogEntry: "+newLogEntry);
-            // save
-            thisRoom.save();
-            });
+                //create new log
+                var logData = {
+                    log : itemData.player +" bought a " + thisItemType.itemTypeName + " and put it in "+ thisRoom.name
+                }
+                var newLogEntry = new GameLog(logData);
+                console.log ("newLogEntry: "+newLogEntry.log);
+                
+                // save
+                thisRoom.save();
+                newLogEntry.save();
+                
+            });//end ItemType.findOne
 
-        });
-    }
+        
+        });//end Room.findOne
+    }//end for-loop
    
     response.redirect('/');
 });
