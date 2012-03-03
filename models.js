@@ -2,36 +2,7 @@
 module.exports.configureSchema = function(Schema, mongoose) {
       
       
-    //to get a play in a room  
-    var ItemInRoom = new Schema({
-        item        : Item,
-        roomName    : String,
-        playerName  : String,
-        domPts      : Number
-    });
       
-    //to adjust the player's money  
-      
-      
-      
-    // Player - 
-    var Player = new Schema({
-      name     : String
-    , password   : String
-    , color   : String
-    , money      : { type: Number, default: 25 }
-    , items     : [Item]
-//    , rooms     : [Room]
-    });
-    
-    // Rooms - 
-    var Room = new Schema({
-      name      : String
-    , domBonus : Number
-//   , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
-//    , dominantPlayer      : {type: Player}
-    });
-    
     //ItemTypes
     var ItemType = new Schema({
       itemTypeName     : String
@@ -47,6 +18,39 @@ module.exports.configureSchema = function(Schema, mongoose) {
     //, player    : {type: Schema.ObjectId, ref :'Player'}// use playername: String
     });
     
+      
+    //to get a play in a room  
+    var ItemInRoom = new Schema({
+        itemName        : String,
+        roomName    : String,
+        playerName  : String,
+        domPts      : Number
+    });
+    
+    // Player - 
+    var Player = new Schema({
+      name     : String
+    , password   : String
+    , color   : String
+    , money      : { type: Number, default: 25 }
+    , items     : [Item]
+//    , rooms     : [Room]
+    });
+    
+    
+    
+    
+    
+    
+    // Rooms - 
+    var Room = new Schema({
+      name      : String
+    , domBonus : Number
+//   , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
+//    , dominantPlayer      : {type: Player}
+    });
+    
+ 
     
     var GameLog = new Schema({
        log          : String,
@@ -66,6 +70,7 @@ module.exports.configureSchema = function(Schema, mongoose) {
  
 
     // add schemas to Mongoose
+    mongoose.model('ItemInRoom', ItemInRoom);
     mongoose.model('Room', Room);
     mongoose.model('ItemType', ItemType);
     mongoose.model('Item', Item);

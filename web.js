@@ -12,6 +12,7 @@ app.db = mongoose.connect(process.env.MONGOLAB_URI); //connect to the mongolabs 
 require('./models').configureSchema(schema, mongoose);
 
 // Define your DB Model variables
+var ItemInRoom = mongoose.model('ItemInRoom');
 var Room = mongoose.model('Room');
 var ItemType = mongoose.model('ItemType');
 var Item = mongoose.model('Item');
@@ -76,6 +77,8 @@ app.get('/', function(request, response) {
     var queryRooms = Room.find({});
         queryRooms.sort('name',-1);
         
+    var queryPlayers = Player.find({});
+        
     var queryLog = GameLog.find({}).sort('timestamp', -1).limit(10);
     
     
@@ -85,6 +88,8 @@ app.get('/', function(request, response) {
         queryRooms.exec({}, function(err, allRooms){
             
             queryLog.exec({}, function(err, logs){
+                
+                queryPlayers.exec({}, function (err, allPlayers){
         
         if (err){
             console.log('No Item Types Available');
@@ -94,6 +99,7 @@ app.get('/', function(request, response) {
                
         // prepare template data
         templateData = {
+            players : allPlayers,
             itemTypes : allItemTypes,
             rooms : allRooms,
             logs : logs,
@@ -107,6 +113,7 @@ app.get('/', function(request, response) {
         response.render("home.html", templateData);
         });
             });
+            });
     });
 });
 
@@ -116,69 +123,91 @@ app.post('/', function(request, response){
     console.log(request.body);
     
     var playerplaying = request.body.playerplaying;
-    var itemChoices = request.body.itemChoices; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
-    var room    = request.body.rooms; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
+    var itemChoices = request.body.itemChoices; 
+    var rooms       = request.body.rooms;
+    
+    console.log("rooms :"+rooms);
+    for (i=0; i < rooms.length; i++){ 
+        console.log("room[" +i+ "]: "+ rooms[i]);
+    }
     
     for (i=0; i < itemChoices.length; i++){    
         
-        ItemType.findOne({itemTypeName: itemChoices[i}, function(err, thisItemType){
+        console.log("itemChoices.length: "+itemChoices.length);
+        console.log("i: "+i);
         
-            var newItemInRoom = {
-                item        : thisItem,
-                roomName    : room[i],
+    //    var itemTypeQuery = ItemType.findOne({itemTypeName: itemChoices[i]});
+    //    var roomQuery = Room.findOne({name: rooms[i]});
+       
+        var foundItem = function(context,i) {
+        // return a function here
+        return function(err, ItemResults) {
+            if(err) { console.log('fail'); }
+            else {
+                // do the magic with context and results
+                console.log("found item type: "+ItemResults.itemTypeName);
+                var thisItemType = ItemResults;
+                Room.findOne({name: rooms[i]}, function(err, thisRoom){
+                    
+                    console.log("found room: "+ thisRoom.name);
+                    
+                    var newItemInRoomData = {
+                itemName        : thisItemType.itemTypeName,
+                //itemName    : itemChoices[i],
+                roomName    : thisRoom.name,
                 playerName  : playerplaying,
-                domPts      : Number
+                domPts      : thisItemType.domPts //only reason i need to do a query here
             }
+            console.log(newItemInRoomData);
+            var newItemInRoom = new ItemInRoom(newItemInRoomData);
         
-        }
-        
-        
-        
-        
-        Room.findOne({name:thisroom}, function(err,thisRoom){
-            //create itemData from inputted data
+             var logData = {
+                    log : newItemInRoom.playerName +" bought a " + newItemInRoom.itemName+ " and put it in "+ newItemInRoom.roomName+" for "+newItemInRoom.domPts+"dominance pts"
+            }
+            var newLogEntry = new GameLog(logData);
+            console.log ("newLogEntry: "+newLogEntry.log);
             
-            console.log("------------------thisRoom is:" + thisRoom.name);
-            console.log("i:" + i);
-        
-            ItemType.findOne({itemTypeName:thistype}, function(err, thisItemType){
-                 console.log("i:" + i);
-                if (err){
-                    console.log("that itemType not found");
-                }
             
-                var itemData = {
-                    itemtype : thisItemType,
-                    player : playerplaying
-                }
-                console.log("thisItemType: " + thisItemType);
-        
-                //create the new Item
-                var newItem = new Item(itemData);
-        
-                console.log("new item created: ");
+            newItemInRoom.save();
+            newLogEntry.save();
+                    
+                    
+                    });
                 
-                //append the item to the room
-                thisRoom.items.push(newItem);
-              
-    
-                //create new log
-                var logData = {
-                    log : itemData.player +" bought a " + thisItemType.itemTypeName + " and put it in "+ thisRoom.name
-                }
-                var newLogEntry = new GameLog(logData);
-                console.log ("newLogEntry: "+newLogEntry.log);
                 
-                // save
-                thisRoom.save();
-                newLogEntry.save();
-                
-            });//end ItemType.findOne
-
+            }
+        };
+    }
+       
+        ItemType.findOne({itemTypeName: itemChoices[i]}, foundItem(this, i));
         
-        });//end Room.findOne
+       /* itemTypeQuery.exec({}, function(err, thisItemType){
+             roomQuery.exec({}, function(err, thisRoom){
+             var newItemInRoomData = {
+                itemName        : thisItemType.itemTypeName,
+                //itemName    : itemChoices[i],
+                roomName    : thisRoom.name,
+                playerName  : playerplaying,
+                domPts      : thisItemType.domPts //only reason i need to do a query here
+            }
+            console.log(newItemInRoomData);
+            var newItemInRoom = new ItemInRoom(newItemInRoomData);
+        
+             var logData = {
+                    log : newItemInRoom.playerName +" bought a " + newItemInRoom.itemName+ " and put it in "+ newItemInRoom.roomName+" for "+newItemInRoom.domPts
+            }
+            var newLogEntry = new GameLog(logData);
+            console.log ("newLogEntry: "+newLogEntry.log);
+            
+            
+            newItemInRoom.save();
+            newLogEntry.save();
+        });
+             });
+        */
+            
     }//end for-loop
-   
+        
     response.redirect('/');
 });
 
@@ -251,7 +280,7 @@ app.get('/admin-player.html', function(request, response) {
     
     // build the query
     var query = Player.find({});
-    query.sort('name',-1); //sort by date in descending order
+    query.sort('money', 1); //sort by date in descending order
     
     // run the query and display blog_main.html template if successful
     query.exec({}, function(err, allPlayers){
