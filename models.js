@@ -1,6 +1,19 @@
 // export Schemas to web.js
 module.exports.configureSchema = function(Schema, mongoose) {
       
+      
+    //to get a play in a room  
+    var ItemInRoom = new Schema({
+        item        : Item,
+        roomName    : String,
+        playerName  : String,
+        domPts      : Number
+    });
+      
+    //to adjust the player's money  
+      
+      
+      
     // Player - 
     var Player = new Schema({
       name     : String
@@ -15,7 +28,7 @@ module.exports.configureSchema = function(Schema, mongoose) {
     var Room = new Schema({
       name      : String
     , domBonus : Number
-    , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
+//   , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
 //    , dominantPlayer      : {type: Player}
     });
     

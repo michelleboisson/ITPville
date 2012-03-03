@@ -115,24 +115,25 @@ app.post('/', function(request, response){
     console.log("form received and includes");
     console.log(request.body);
     
-
+    var playerplaying = request.body.playerplaying;
     var itemChoices = request.body.itemChoices; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
-//    itemChoices = Array(itemChoices);
     var room    = request.body.rooms; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
-//    room = Array(room);
-    console.log ("room: "+room);
     
-    //loop through all choices
-    console.log ("outside loop itemChoices.length: "+itemChoices.length);
-    
-    console.log("itemChoice 0: "+itemChoices[0]);
-    console.log("itemChoice 1: "+itemChoices[1]);
-    
-    for (i=0; i < itemChoices.length; i++){
-        console.log("i:" + i);
+    for (i=0; i < itemChoices.length; i++){    
         
-        var thisroom = room[i];
-        var thistype = itemChoices[i];      
+        ItemType.findOne({itemTypeName: itemChoices[i}, function(err, thisItemType){
+        
+            var newItemInRoom = {
+                item        : thisItem,
+                roomName    : room[i],
+                playerName  : playerplaying,
+                domPts      : Number
+            }
+        
+        }
+        
+        
+        
         
         Room.findOne({name:thisroom}, function(err,thisRoom){
             //create itemData from inputted data
@@ -148,7 +149,7 @@ app.post('/', function(request, response){
             
                 var itemData = {
                     itemtype : thisItemType,
-                    player : "Player1"
+                    player : playerplaying
                 }
                 console.log("thisItemType: " + thisItemType);
         
