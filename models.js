@@ -7,16 +7,17 @@ module.exports.configureSchema = function(Schema, mongoose) {
     var ItemType = new Schema({
       itemTypeName     : String
     , picture   : String
-    , domPts    : Number
     , cost      : Number
+    , domPts    : Number
+    , recurringPts: Number
     });
     
     // Items - 
-    var Item = new Schema({
-      itemtype  : {type: Schema.ObjectId, ref :'ItemType'}
-    , player    : String
+ //   var Item = new Schema({
+ //     itemtype  : {type: Schema.ObjectId, ref :'ItemType'}
+    //, player    : String
     //, player    : {type: Schema.ObjectId, ref :'Player'}// use playername: String
-    });
+//    });
     
       
     //to get a play in a room  
@@ -32,8 +33,8 @@ module.exports.configureSchema = function(Schema, mongoose) {
       name     : String
     , password   : String
     , color   : String
-    , money      : { type: Number, default: 25 }
-    , items     : [Item]
+    , money      : { type: Number, default: 100 }
+    , items     : [ItemType]
 //    , rooms     : [Room]
     });
     
@@ -73,7 +74,6 @@ module.exports.configureSchema = function(Schema, mongoose) {
     mongoose.model('ItemInRoom', ItemInRoom);
     mongoose.model('Room', Room);
     mongoose.model('ItemType', ItemType);
-    mongoose.model('Item', Item);
     mongoose.model('Player', Player);
     mongoose.model('GameLog', GameLog);
 

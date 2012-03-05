@@ -15,7 +15,6 @@ require('./models').configureSchema(schema, mongoose);
 var ItemInRoom = mongoose.model('ItemInRoom');
 var Room = mongoose.model('Room');
 var ItemType = mongoose.model('ItemType');
-var Item = mongoose.model('Item');
 var Player = mongoose.model('Player');
 var GameLog = mongoose.model('GameLog');
 
@@ -106,9 +105,9 @@ app.get('/', function(request, response) {
             pageTitle : 'ITPville'
         };
         
-//       console.log("allItemTypes contains");
+//      console.log("allItemTypes contains");
 //      console.log(allItemTypes);
-//        console.log("*****************");
+//      console.log("*****************");
 
         response.render("home.html", templateData);
         });
@@ -126,10 +125,8 @@ app.post('/', function(request, response){
     var itemChoices = request.body.itemChoices; 
     var rooms       = request.body.rooms;
     
-    console.log("rooms :"+rooms);
-    for (i=0; i < rooms.length; i++){ 
-        console.log("room[" +i+ "]: "+ rooms[i]);
-    }
+    //keep track of what the player is spending
+    var playerSpent = 0;
     
     for (i=0; i < itemChoices.length; i++){    
         
@@ -140,71 +137,52 @@ app.post('/', function(request, response){
     //    var roomQuery = Room.findOne({name: rooms[i]});
        
         var foundItem = function(context,i) {
-        // return a function here
-        return function(err, ItemResults) {
-            if(err) { console.log('fail'); }
-            else {
-                // do the magic with context and results
-                console.log("found item type: "+ItemResults.itemTypeName);
-                var thisItemType = ItemResults;
-                Room.findOne({name: rooms[i]}, function(err, thisRoom){
+            // return a function here
+            return function(err, ItemResults) {
+                if(err) { console.log('fail'); }
+                else {
+                    // do the magic with context and results
+                    console.log("found item type: "+ItemResults.itemTypeName);
                     
-                    console.log("found room: "+ thisRoom.name);
+                    //the points to the playerSpent
+                    playerSpent += ItemResults.cost;
+                    console.log("playerSpent: "+ playerSpent);
                     
-                    var newItemInRoomData = {
-                itemName        : thisItemType.itemTypeName,
-                //itemName    : itemChoices[i],
-                roomName    : thisRoom.name,
-                playerName  : playerplaying,
-                domPts      : thisItemType.domPts //only reason i need to do a query here
-            }
-            console.log(newItemInRoomData);
-            var newItemInRoom = new ItemInRoom(newItemInRoomData);
-        
-             var logData = {
-                    log : newItemInRoom.playerName +" bought a " + newItemInRoom.itemName+ " and put it in "+ newItemInRoom.roomName+" for "+newItemInRoom.domPts+"dominance pts"
-            }
-            var newLogEntry = new GameLog(logData);
-            console.log ("newLogEntry: "+newLogEntry.log);
+                    var thisItemType = ItemResults;
             
+                    Room.findOne({name: rooms[i]}, function(err, thisRoom){
+                    
+                        console.log("found room: "+ thisRoom.name);
+                    
+                        var newItemInRoomData = {
+                            itemName        : thisItemType.itemTypeName,
+                            //itemName    : itemChoices[i],
+                            roomName    : thisRoom.name,
+                            playerName  : playerplaying,
+                            domPts      : thisItemType.domPts //only reason i need to do a query here
+                        }
+                        console.log(newItemInRoomData);
+                    
+                        var newItemInRoom = new ItemInRoom(newItemInRoomData);
             
-            newItemInRoom.save();
-            newLogEntry.save();
+                        var logData = {
+                            log : newItemInRoom.playerName +" bought a " + newItemInRoom.itemName+ " and put it in "+ newItemInRoom.roomName+" for "+newItemInRoom.domPts+"dominance pts"
+                        }
+                
+                        var newLogEntry = new GameLog(logData);
+                        console.log ("newLogEntry: "+newLogEntry.log);
+                    
+                        newItemInRoom.save();
+                        newLogEntry.save();
                     
                     
-                    });
-                
-                
-            }
-        };
-    }
+                    }); //end Room.findOne
+                }//end else
+            };//end return function
+        }//end foundItem
        
+        //loop through all itemChoices
         ItemType.findOne({itemTypeName: itemChoices[i]}, foundItem(this, i));
-        
-       /* itemTypeQuery.exec({}, function(err, thisItemType){
-             roomQuery.exec({}, function(err, thisRoom){
-             var newItemInRoomData = {
-                itemName        : thisItemType.itemTypeName,
-                //itemName    : itemChoices[i],
-                roomName    : thisRoom.name,
-                playerName  : playerplaying,
-                domPts      : thisItemType.domPts //only reason i need to do a query here
-            }
-            console.log(newItemInRoomData);
-            var newItemInRoom = new ItemInRoom(newItemInRoomData);
-        
-             var logData = {
-                    log : newItemInRoom.playerName +" bought a " + newItemInRoom.itemName+ " and put it in "+ newItemInRoom.roomName+" for "+newItemInRoom.domPts
-            }
-            var newLogEntry = new GameLog(logData);
-            console.log ("newLogEntry: "+newLogEntry.log);
-            
-            
-            newItemInRoom.save();
-            newLogEntry.save();
-        });
-             });
-        */
             
     }//end for-loop
         
@@ -364,6 +342,32 @@ app.post('/admin-room.html', function(request, response){
     room.save();
     
     response.redirect('/admin-room.html');
+});
+
+
+
+//Player's info page
+app.get('player/:playername', function(request, response){
+    console.log("Requesting Player Page");
+    
+    var playerName = request.params.playerName;
+    
+    var queryItemInRoom = ItemInRoom.find({'playerName':playerName});
+    
+    Player.findOne({name: playerName}, function(err, thisPlayer){
+        
+        if(err){
+            console.log('error');
+            console.log(err);
+            response.redirect('/card_not_found.html');
+        }else{
+            templateData = {
+                player: thisPlayer,
+                itemsInRoom : queryItemInRoom
+            };
+            response.redirect('/player-single.html', templateData);
+        }
+    });
 });
 
 

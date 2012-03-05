@@ -38,6 +38,7 @@ document.getElementById("sidemenu").className += "home";
 			<input type="checkbox" name="itemChoices[]" class="itemChoices" value="<%= itemTypes[i].itemTypeName %>"/>
 			<strong><%= itemTypes[i].itemTypeName %></strong><br/>
 			Dominance Points: <%= itemTypes[i].domPts %><br/>
+			Cost <%=itemTypes[i].cost %><br/>
 			Picture: <%= itemTypes[i].picture %>
 		</div>
 	<% } %>

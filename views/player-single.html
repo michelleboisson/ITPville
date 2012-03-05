@@ -1,0 +1,26 @@
+
+  <div class="row-fluid">
+    <div class="span2">
+      <!--Sidebar content -- current items-->
+
+	<!-- we passed in data from web.js render.response, so we have access to 'images' -->
+                                
+	
+    </div>
+    <div class="span10">
+      <!--Body content -- content avail form -->
+      <h1><%= player.name %>'s Status</h1>
+      
+      <p>Inspiration points left: <%= player.money %></p>
+      
+      <h2>Items you own:</h2>
+      <% for (i=0; i< player.items.length; i++) %>
+      <p><%= player.items[i].itemTypeName %>, <%= player.items[i].recurring %> inspiration points</p>
+      <% } %>
+      
+      <h2>Your Items in Rooms</h2>
+      <p><%= itemsInRoom %></p>
+      
+      
+    </div>
+  </div>
