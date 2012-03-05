@@ -129,7 +129,7 @@ app.post('/', function(request, response){
     console.log("itemChoice 1: "+itemChoices[1]);
     
     for (i=0; i < itemChoices.length; i++){
-        console.log("i:" + i);
+        console.log("first i:" + i);
         
         var thisroom = room[i];
         var thistype = itemChoices[i];      
@@ -138,10 +138,10 @@ app.post('/', function(request, response){
             //create itemData from inputted data
             
             console.log("------------------thisRoom is:" + thisRoom.name);
-            console.log("i:" + i);
+            console.log("second i:" + i);
         
             ItemType.findOne({itemTypeName:thistype}, function(err, thisItemType){
-                 console.log("i:" + i);
+                 console.log("third i:" + i);
                 if (err){
                     console.log("that itemType not found");
                 }
