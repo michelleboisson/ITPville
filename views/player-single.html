@@ -8,18 +8,15 @@
 	
     </div>
     <div class="span10">
-      <!--Body content -- content avail form -->
-      <h1><%= player.name %>'s Status</h1>
+    <!--Body content -- content avail form -->
+      <h1><%= name %>'s Status</h1>
       
-      <p>Inspiration points left: <%= player.money %></p>
+      <p>Inspiration points left: <%= money %></p>
       
-      <h2>Items you own:</h2>
-      <% for (i=0; i< player.items.length; i++) %>
-      <p><%= player.items[i].itemTypeName %>, <%= player.items[i].recurring %> inspiration points</p>
-      <% } %>
+      <p><%= items %></p>
       
       <h2>Your Items in Rooms</h2>
-      <p><%= itemsInRoom %></p>
+      
       
       
     </div>

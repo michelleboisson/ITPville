@@ -145,9 +145,11 @@ app.post('/', function(request, response){
                     console.log("found item type: "+ItemResults.itemTypeName);
                     
                     //the points to the playerSpent
-                    playerSpent += ItemResults.cost;
-                    console.log("playerSpent: "+ playerSpent);
+                    //playerSpent += ItemResults.cost;
+                    //console.log("playerSpent: "+ playerSpent);
                     
+                    updatePlayer(ItemResults.cost);
+                
                     var thisItemType = ItemResults;
             
                     Room.findOne({name: rooms[i]}, function(err, thisRoom){
@@ -174,20 +176,48 @@ app.post('/', function(request, response){
                     
                         newItemInRoom.save();
                         newLogEntry.save();
-                    
-                    
                     }); //end Room.findOne
                 }//end else
             };//end return function
         }//end foundItem
        
         //loop through all itemChoices
-        ItemType.findOne({itemTypeName: itemChoices[i]}, foundItem(this, i));
-            
+        ItemType.findOne({itemTypeName: itemChoices[i]}, foundItem(this, i)); 
+   
     }//end for-loop
-        
-    response.redirect('/');
+    
+    function updatePlayer (moneySpent){
+    console.log("Money spent: "+moneySpent);
+    var conditions = { name: playerplaying }
+        , update = { $inc: { money: (- moneySpent) }}
+        , options = {multi : false};
+    
+    Player.update(conditions, update, options,  function(err, numAffected) {
+        if (err) {
+            console.log('Update Error Occurred');
+            response.send('Update Error Occurred ' + err);
+
+        } else {
+            
+            console.log("update succeeded");
+            console.log(numAffected + " document(s) updated");
+            
+        console.log("Updated "+playerplaying+"\'s docs. Money spent: "+playerSpent);
+        // numAffected is the number of updated documents
+    }
+    
+    response.redirect('/player/'+playerplaying);
 });
+    }
+});
+
+app.post("/update", function(request, response){
+    
+});
+
+
+
+
 
 
 // ---------------------------ADMIN PAGE - ITEMS ---------------------------
@@ -277,6 +307,7 @@ app.get('/admin-player.html', function(request, response) {
     response.render("admin-player.html", templateData);
     });
 });
+
 app.post('/admin-player.html', function(request, response){
     console.log("Inside app.post('/player')");
     console.log("form received and includes")
@@ -345,29 +376,60 @@ app.post('/admin-room.html', function(request, response){
 });
 
 
+//Player's info page
+app.get('/room/:roomname', function(request, response){
+    console.log("Requesting Room Page");
+    
+    var roomName = request.params.roomname;
+    
+    //var queryItemInRoom = ItemInRoom.find({'playerName':playerName});
+    
+    ItemInRoom.find({roomName: roomName}, function(err, rooms){
+        console.log("find fucntion");
+        if(err){
+            console.log('error');
+            console.log(err);
+            response.send('uh oh');
+        }else{
+            console.log("ROOM found");
+            console.log(rooms);
+//            var player = thisPlayer;
+//            var templateData = {
+//                player: thisPlayer
+//                itemsInRoom : queryItemInRoom
+//            };
+            response.render('/player-single.html', rooms);
+        }
+    });//end player find one
+});
+
+
 
 //Player's info page
-app.get('player/:playername', function(request, response){
+app.get('/player/:playername', function(request, response){
     console.log("Requesting Player Page");
     
-    var playerName = request.params.playerName;
+    var playerName = request.params.playername;
     
-    var queryItemInRoom = ItemInRoom.find({'playerName':playerName});
+    //var queryItemInRoom = ItemInRoom.find({'playerName':playerName});
     
     Player.findOne({name: playerName}, function(err, thisPlayer){
-        
+        console.log("find fucntion");
         if(err){
             console.log('error');
             console.log(err);
             response.redirect('/card_not_found.html');
         }else{
-            templateData = {
-                player: thisPlayer,
-                itemsInRoom : queryItemInRoom
-            };
-            response.redirect('/player-single.html', templateData);
+            console.log("PLAYER found");
+            console.log(thisPlayer);
+//            var player = thisPlayer;
+//            var templateData = {
+//                player: thisPlayer
+//                itemsInRoom : queryItemInRoom
+//            };
+            response.render('player-single.html', thisPlayer);
         }
-    });
+    });//end player find one
 });
 
 
