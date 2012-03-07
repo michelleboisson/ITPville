@@ -1,39 +1,57 @@
 // export Schemas to web.js
 module.exports.configureSchema = function(Schema, mongoose) {
       
+      
+      
+    //ItemTypes
+    var ItemType = new Schema({
+      itemTypeName     : String
+    , picture   : String
+    , cost      : Number
+    , domPts    : Number
+    , recurringPts: Number
+    });
+    
+    // Items - 
+ //   var Item = new Schema({
+ //     itemtype  : {type: Schema.ObjectId, ref :'ItemType'}
+    //, player    : String
+    //, player    : {type: Schema.ObjectId, ref :'Player'}// use playername: String
+//    });
+    
+      
+    //to get a play in a room  
+    var ItemInRoom = new Schema({
+        itemName        : String,
+        roomName    : String,
+        playerName  : String,
+        domPts      : Number
+    });
+    
     // Player - 
     var Player = new Schema({
       name     : String
     , password   : String
     , color   : String
-    , money      : { type: Number, default: 25 }
-    , items     : [Item]
+    , money      : { type: Number, default: 100 }
+    , items     : [ItemType]
 //    , rooms     : [Room]
     });
+    
+    
+    
+    
+    
     
     // Rooms - 
     var Room = new Schema({
       name      : String
     , domBonus : Number
-    , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
+//   , items     : [{ type: Schema.ObjectId, ref: 'Item' }]
 //    , dominantPlayer      : {type: Player}
     });
     
-    //ItemTypes
-    var ItemType = new Schema({
-      itemTypeName     : String
-    , picture   : String
-    , domPts    : Number
-    , cost      : Number
-    });
-    
-    // Items - 
-    var Item = new Schema({
-      itemtype  : {type: Schema.ObjectId, ref :'ItemType'}
-    , player    : String
-    //, player    : {type: Schema.ObjectId, ref :'Player'}// use playername: String
-    });
-    
+ 
     
     var GameLog = new Schema({
        log          : String,
@@ -53,9 +71,9 @@ module.exports.configureSchema = function(Schema, mongoose) {
  
 
     // add schemas to Mongoose
+    mongoose.model('ItemInRoom', ItemInRoom);
     mongoose.model('Room', Room);
     mongoose.model('ItemType', ItemType);
-    mongoose.model('Item', Item);
     mongoose.model('Player', Player);
     mongoose.model('GameLog', GameLog);
 

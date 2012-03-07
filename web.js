@@ -12,9 +12,9 @@ app.db = mongoose.connect(process.env.MONGOLAB_URI); //connect to the mongolabs 
 require('./models').configureSchema(schema, mongoose);
 
 // Define your DB Model variables
+var ItemInRoom = mongoose.model('ItemInRoom');
 var Room = mongoose.model('Room');
 var ItemType = mongoose.model('ItemType');
-var Item = mongoose.model('Item');
 var Player = mongoose.model('Player');
 var GameLog = mongoose.model('GameLog');
 
@@ -76,6 +76,8 @@ app.get('/', function(request, response) {
     var queryRooms = Room.find({});
         queryRooms.sort('name',-1);
         
+    var queryPlayers = Player.find({});
+        
     var queryLog = GameLog.find({}).sort('timestamp', -1).limit(10);
     
     
@@ -85,6 +87,8 @@ app.get('/', function(request, response) {
         queryRooms.exec({}, function(err, allRooms){
             
             queryLog.exec({}, function(err, logs){
+                
+                queryPlayers.exec({}, function (err, allPlayers){
         
         if (err){
             console.log('No Item Types Available');
@@ -94,18 +98,20 @@ app.get('/', function(request, response) {
                
         // prepare template data
         templateData = {
+            players : allPlayers,
             itemTypes : allItemTypes,
             rooms : allRooms,
             logs : logs,
             pageTitle : 'ITPville'
         };
         
-//       console.log("allItemTypes contains");
+//      console.log("allItemTypes contains");
 //      console.log(allItemTypes);
-//        console.log("*****************");
+//      console.log("*****************");
 
         response.render("home.html", templateData);
         });
+            });
             });
     });
 });
@@ -115,71 +121,105 @@ app.post('/', function(request, response){
     console.log("form received and includes");
     console.log(request.body);
     
+    var playerplaying = request.body.playerplaying;
+    var itemChoices = request.body.itemChoices; 
+    var rooms       = request.body.rooms;
+    
+    //keep track of what the player is spending
+    var playerSpent = 0;
+    
 
-    var itemChoices = request.body.itemChoices; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
-//    itemChoices = Array(itemChoices);
-    var room    = request.body.rooms; // returns an array if multiple checkboxes are checked, but returns a String if only one is checked
-//    room = Array(room);
-    console.log ("room: "+room);
-    
-    //loop through all choices
-    console.log ("outside loop itemChoices.length: "+itemChoices.length);
-    
-    console.log("itemChoice 0: "+itemChoices[0]);
-    console.log("itemChoice 1: "+itemChoices[1]);
-    
-    for (i=0; i < itemChoices.length; i++){
-        console.log("first i:" + i);
-        
-        var thisroom = room[i];
-        var thistype = itemChoices[i];      
-        
-        Room.findOne({name:thisroom}, function(err,thisRoom){
-            //create itemData from inputted data
-            
-            console.log("------------------thisRoom is:" + thisRoom.name);
-            console.log("second i:" + i);
-        
-            ItemType.findOne({itemTypeName:thistype}, function(err, thisItemType){
-                 console.log("third i:" + i);
-                if (err){
-                    console.log("that itemType not found");
-                }
-            
-                var itemData = {
-                    itemtype : thisItemType,
-                    player : "Player1"
-                }
-                console.log("thisItemType: " + thisItemType);
-        
-                //create the new Item
-                var newItem = new Item(itemData);
-        
-                console.log("new item created: ");
-                
-                //append the item to the room
-                thisRoom.items.push(newItem);
-              
-    
-                //create new log
-                var logData = {
-                    log : itemData.player +" bought a " + thisItemType.itemTypeName + " and put it in "+ thisRoom.name
-                }
-                var newLogEntry = new GameLog(logData);
-                console.log ("newLogEntry: "+newLogEntry.log);
-                
-                // save
-                thisRoom.save();
-                newLogEntry.save();
-                
-            });//end ItemType.findOne
+    for (i=0; i < itemChoices.length; i++){    
 
         
-        });//end Room.findOne
-    }//end for-loop
+        console.log("itemChoices.length: "+itemChoices.length);
+        console.log("i: "+i);
+        
+    //    var itemTypeQuery = ItemType.findOne({itemTypeName: itemChoices[i]});
+    //    var roomQuery = Room.findOne({name: rooms[i]});
+       
+        var foundItem = function(context,i) {
+            // return a function here
+            return function(err, ItemResults) {
+                if(err) { console.log('fail'); }
+                else {
+                    // do the magic with context and results
+                    console.log("found item type: "+ItemResults.itemTypeName);
+                    
+                    //the points to the playerSpent
+                    //playerSpent += ItemResults.cost;
+                    //console.log("playerSpent: "+ playerSpent);
+                    
+                    updatePlayer(ItemResults.cost);
+                
+                    var thisItemType = ItemResults;
+
+                    Room.findOne({name: rooms[i]}, function(err, thisRoom){
+                    
+                        console.log("found room: "+ thisRoom.name);
+                    
+                        var newItemInRoomData = {
+                            itemName        : thisItemType.itemTypeName,
+                            //itemName    : itemChoices[i],
+                            roomName    : thisRoom.name,
+                            playerName  : playerplaying,
+                            domPts      : thisItemType.domPts //only reason i need to do a query here
+                        }
+                        console.log(newItemInRoomData);
+                    
+                        var newItemInRoom = new ItemInRoom(newItemInRoomData);
+            
+                        var logData = {
+                            log : newItemInRoom.playerName +" bought a " + newItemInRoom.itemName+ " and put it in "+ newItemInRoom.roomName+" for "+newItemInRoom.domPts+"dominance pts"
+                        }
+                
+                        var newLogEntry = new GameLog(logData);
+                        console.log ("newLogEntry: "+newLogEntry.log);
+                    
+                        newItemInRoom.save();
+                        newLogEntry.save();
+                    }); //end Room.findOne
+                }//end else
+            };//end return function
+        }//end foundItem
+       
+        //loop through all itemChoices
+        ItemType.findOne({itemTypeName: itemChoices[i]}, foundItem(this, i)); 
    
-    response.redirect('/');
+    }//end for-loop
+    
+    function updatePlayer (moneySpent){
+    console.log("Money spent: "+moneySpent);
+    var conditions = { name: playerplaying }
+        , update = { $inc: { money: (- moneySpent) }}
+        , options = {multi : false};
+    
+    Player.update(conditions, update, options,  function(err, numAffected) {
+        if (err) {
+            console.log('Update Error Occurred');
+            response.send('Update Error Occurred ' + err);
+
+        } else {
+            
+            console.log("update succeeded");
+            console.log(numAffected + " document(s) updated");
+            
+        console.log("Updated "+playerplaying+"\'s docs. Money spent: "+playerSpent);
+        // numAffected is the number of updated documents
+    }
+    
+    response.redirect('/player/'+playerplaying);
 });
+    }
+});
+
+app.post("/update", function(request, response){
+    
+});
+
+
+
+
 
 
 // ---------------------------ADMIN PAGE - ITEMS ---------------------------
@@ -250,7 +290,7 @@ app.get('/admin-player.html', function(request, response) {
     
     // build the query
     var query = Player.find({});
-    query.sort('name',-1); //sort by date in descending order
+    query.sort('money', 1); //sort by date in descending order
     
     // run the query and display blog_main.html template if successful
     query.exec({}, function(err, allPlayers){
@@ -269,6 +309,7 @@ app.get('/admin-player.html', function(request, response) {
     response.render("admin-player.html", templateData);
     });
 });
+
 app.post('/admin-player.html', function(request, response){
     console.log("Inside app.post('/player')");
     console.log("form received and includes")
@@ -334,6 +375,63 @@ app.post('/admin-room.html', function(request, response){
     room.save();
     
     response.redirect('/admin-room.html');
+});
+
+
+//Player's info page
+app.get('/room/:roomname', function(request, response){
+    console.log("Requesting Room Page");
+    
+    var roomName = request.params.roomname;
+    
+    //var queryItemInRoom = ItemInRoom.find({'playerName':playerName});
+    
+    ItemInRoom.find({roomName: roomName}, function(err, rooms){
+        console.log("find fucntion");
+        if(err){
+            console.log('error');
+            console.log(err);
+            response.send('uh oh');
+        }else{
+            console.log("ROOM found");
+            console.log(rooms);
+//            var player = thisPlayer;
+//            var templateData = {
+//                player: thisPlayer
+//                itemsInRoom : queryItemInRoom
+//            };
+            response.render('/player-single.html', rooms);
+        }
+    });//end player find one
+});
+
+
+
+//Player's info page
+app.get('/player/:playername', function(request, response){
+    console.log("Requesting Player Page");
+    
+    var playerName = request.params.playername;
+    
+    //var queryItemInRoom = ItemInRoom.find({'playerName':playerName});
+    
+    Player.findOne({name: playerName}, function(err, thisPlayer){
+        console.log("find fucntion");
+        if(err){
+            console.log('error');
+            console.log(err);
+            response.redirect('/card_not_found.html');
+        }else{
+            console.log("PLAYER found");
+            console.log(thisPlayer);
+//            var player = thisPlayer;
+//            var templateData = {
+//                player: thisPlayer
+//                itemsInRoom : queryItemInRoom
+//            };
+            response.render('player-single.html', thisPlayer);
+        }
+    });//end player find one
 });
 
 

@@ -17,20 +17,28 @@ document.getElementById("sidemenu").className += "home";
     <div class="span4">
       <!--Sidebar content -- Player info-->
       <h2>Your Status:</h2>
+      
+      
+      
     </div>
     <div class="span8">
       <!--Body content -- content avail form -->
-      
-      
+	<form method="post">     
+	<h2>I am <select name="playerplaying" id="playerchoice">
+			<option value="">Choose a player</option>
+	<% for (p=0; p < players.length; p++){ %>
+		<option name="<%=players[p].name %>" value="<%=players[p].name %>"><%=players[p].name %></option>
+		<% } %>
+		</select>
       
       
       <h2>Purchase Items</h2>
-      <form method="post">
-	
 	<% for(i=0; i<=itemTypes.length-1; i++) { %>                               
                 <div class="item">
-			<input type="checkbox" id="<%= i %>"  name="itemChoices" value="<%= itemTypes[i].itemTypeName %>"/> <strong><%= itemTypes[i].itemTypeName %></strong><br/>
+			<input type="checkbox" name="itemChoices[]" class="itemChoices" value="<%= itemTypes[i].itemTypeName %>"/>
+			<strong><%= itemTypes[i].itemTypeName %></strong><br/>
 			Dominance Points: <%= itemTypes[i].domPts %><br/>
+			Cost <%=itemTypes[i].cost %><br/>
 			Picture: <%= itemTypes[i].picture %>
 		</div>
 	<% } %>
@@ -47,9 +55,9 @@ document.getElementById("sidemenu").className += "home";
 	jQuery(document).ready(function() {
 
 		//Get show the dropdown for items that are checked
-		var dropdown = "<select name='rooms' class='roomoptions'><option value=''>Choose room...</option><% for (r=rooms.length-1; r>=0; r--) { %><option name='<%= rooms[r].name %>' value='<%= rooms[r].name %>'><%= rooms[r].name %></option><% } %></select> ";
+		var dropdown = "<select name='rooms[]' class='roomoptions'><option value=''>Choose room...</option><% for (r=rooms.length-1; r>=0; r--) { %><option name='<%= rooms[r].name %>' value='<%= rooms[r].name %>'><%= rooms[r].name %></option><% } %></select> ";
 		
-		$("input[name=itemChoices]").live('click', function() {	
+		$("input.itemChoices").live('click', function() {	
 			if($(this).attr("checked")){	
 				$(this).parents("div.item").append($(dropdown));
 			}
@@ -58,6 +66,10 @@ document.getElementById("sidemenu").className += "home";
 				$(this).siblings(".roomoptions").remove();
 			}
 		});
+		
+		//$("#playerchoice").children("option").is("selected").text() is the fastest.
+		
+		
         });//end jQuery
         
 </script>
